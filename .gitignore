@@ -7,6 +7,8 @@ build/
 
 # Spring Boot application properties
 application.properties
+# application-secret
+application-secret.properties
 settings.gradle
 
 ### STS ###
