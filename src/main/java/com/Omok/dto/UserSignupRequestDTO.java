@@ -9,6 +9,7 @@ import lombok.*;
 @ToString
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class UserSignupRequestDTO {
     @NotBlank(message = "Username or email is required")
     private String username;

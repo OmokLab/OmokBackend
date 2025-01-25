@@ -10,6 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -24,7 +25,8 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID userId;
+    @Column(name = "user_id", columnDefinition = "CHAR(36)")
+    private String userId;
 
     private String email;
     private String username;
@@ -58,5 +60,12 @@ public class User implements UserDetails {
         this.password = userSignupRequestDTO.getPassword();
         this.platform = Platform.SERVER;
         this.role = Role.ROLE_USER;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (this.userId == null) {
+            this.userId = UUID.randomUUID().toString(); // UUID를 문자열로 변환
+        }
     }
 }
