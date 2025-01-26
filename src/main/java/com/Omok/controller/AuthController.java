@@ -23,10 +23,10 @@ public class AuthController {
 
     @Operation(summary = "Security 로그인")
     @PostMapping("/login")
-    public String login(@RequestBody UserLoginRequestDTO UserLoginRequestDTO) {
+    public String login(@RequestBody UserLoginRequestDTO userLoginRequestDTO) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(UserLoginRequestDTO.getUsername(), UserLoginRequestDTO.getPassword()));
+                    new UsernamePasswordAuthenticationToken(userLoginRequestDTO.getUsername(), userLoginRequestDTO.getPassword()));
             return jwtTokenProvider.createToken(authentication.getName(), "USER");
         } catch (AuthenticationException e) {
             throw new RuntimeException("Invalid username or password");
