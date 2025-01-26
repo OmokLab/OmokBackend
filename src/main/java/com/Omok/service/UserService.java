@@ -20,6 +20,11 @@ public class UserService {
             // 둘 중하나가 중복이라면
             throw new UserAlreadyExistsException("아이디나 이메일이 이미 존재합니다.");
         }
+        userSignupRequestDTO = UserSignupRequestDTO.builder()
+                .username(userSignupRequestDTO.getUsername())
+                .email(userSignupRequestDTO.getEmail())
+                .password(passwordEncoder.encode(userSignupRequestDTO.getPassword()))
+                .build();
         userRepository.save(new User(userSignupRequestDTO));
     }
 }

@@ -1,17 +1,14 @@
 package com.Omok.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 
 @Getter
 @Setter
 @ToString
 @AllArgsConstructor
-
+@NoArgsConstructor
 public class UserLoginRequestDTO {
     @NotBlank(message = "Username or email is required")
     private String username;
