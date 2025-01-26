@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
@@ -42,6 +44,20 @@ public class UserController {
                     new UsernamePasswordAuthenticationToken(userLoginRequestDTO.getUsername(), userLoginRequestDTO.getPassword()));
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE,jwtTokenProvider.createToken(authentication.getName(), "USER"))
+                    .build();
+        } catch (AuthenticationException e) {
+            throw new RuntimeException("Invalid username or password");
+        }
+    }
+
+    @Operation(summary = "Guest 로그인")
+    @PostMapping("/guestlogin")
+    public ResponseEntity<?> guestLogin() {
+        try {
+            String guestId = UUID.randomUUID().toString();
+            String role = "GUEST";
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE,jwtTokenProvider.createToken(guestId, role))
                     .build();
         } catch (AuthenticationException e) {
             throw new RuntimeException("Invalid username or password");
