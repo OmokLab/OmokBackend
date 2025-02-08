@@ -1,11 +1,8 @@
 package com.Omok.global.security;
 
-import com.Omok.entity.enums.Role;
-import com.Omok.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -34,11 +31,13 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
 
+        // GUEST 인증이 필요한 api
+        String[] guestAuthApi = {"/api/guest"};
 
-        // 인증이 필요한 Get api
-        String[] userGetAuth = {"/auth/test"};
+        // USER 인증이 필요한 api
+        String[] userAuthApi = {"/auth/test"};
 
-        // 인증이 필요하지 않은 Get이 아닌 api
+        // 인증이 필요하지 않은 api
         String[] configApi = {
                             "/swagger-ui/**",
                             "/swagger-ui.html",
@@ -54,7 +53,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(configApi).permitAll() // configApi에 정의된 경로는 모두 접근 허용
                         .requestMatchers(userApi).permitAll()   // userApi에 정의된 경로는 모두 접근 허용
-                        .requestMatchers(userGetAuth).hasRole("USER")
+                        .requestMatchers(userAuthApi).hasRole("USER")
+                        .requestMatchers(guestAuthApi).hasRole("GUEST")
                         .anyRequest().authenticated()           // 그 외의 모든 요청은 인증 필요
                 )
                 .sessionManagement(session -> session

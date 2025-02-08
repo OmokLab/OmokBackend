@@ -63,4 +63,11 @@ public class UserController {
             throw new RuntimeException("Invalid username or password");
         }
     }
+
+
+    @Operation(summary = "Guest 테스트")
+    @PostMapping("/guest/test")
+    public ResponseEntity<?> guestTest() {
+        return ResponseEntity.ok().build();
+    }
 }
