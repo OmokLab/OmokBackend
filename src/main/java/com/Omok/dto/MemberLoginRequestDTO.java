@@ -9,7 +9,7 @@ import lombok.*;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserLoginRequestDTO {
+public class MemberLoginRequestDTO {
     @NotBlank(message = "Username or email is required")
     private String username;
 

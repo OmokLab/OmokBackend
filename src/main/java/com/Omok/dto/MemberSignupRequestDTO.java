@@ -1,6 +1,6 @@
 package com.Omok.dto;
 
-import com.Omok.entity.User;
+import com.Omok.entity.Member;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
@@ -10,7 +10,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserSignupRequestDTO {
+public class MemberSignupRequestDTO {
     @NotBlank(message = "Username or email is required")
     private String username;
 
@@ -20,9 +20,9 @@ public class UserSignupRequestDTO {
     @NotBlank(message = "Email is required")
     private String email;
 
-    public UserSignupRequestDTO(User user) {
-        this.username = user.getUsername();
-        this.password = user.getPassword();
-        this.email = user.getEmail();
+    public MemberSignupRequestDTO(Member member) {
+        this.username = member.getUsername();
+        this.password = member.getPassword();
+        this.email = member.getEmail();
     }
 }

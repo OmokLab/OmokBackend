@@ -10,6 +10,5 @@ public enum Platform {
     NAVER("NAVER"),
     GOOGLE("GOOGLE"),
     SERVER("SERVER");
-
     private final String platform;
 }

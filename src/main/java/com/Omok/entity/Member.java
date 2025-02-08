@@ -1,35 +1,37 @@
 package com.Omok.entity;
 
-import com.Omok.dto.UserSignupRequestDTO;
+import com.Omok.dto.MemberSignupRequestDTO;
 import com.Omok.entity.enums.Platform;
 import com.Omok.entity.enums.Role;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
-@Table(name = "user")
+@Table(name = "member")
 @Getter
-@NoArgsConstructor
-public class User implements UserDetails {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor
+public class Member implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "user_id", columnDefinition = "CHAR(36)")
-    private String userId;
+    @Column(name = "member_id", columnDefinition = "CHAR(36)")
+    private String memberId;
 
+    @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(nullable = false, unique = true)
     private String username;
+
+    @Column(nullable = false)
     private String password;
 
     @Column(nullable = false)
@@ -54,18 +56,24 @@ public class User implements UserDetails {
         return username;
     }
 
-    public User(UserSignupRequestDTO userSignupRequestDTO) {
-        this.email = userSignupRequestDTO.getEmail();
-        this.username = userSignupRequestDTO.getUsername();
-        this.password = userSignupRequestDTO.getPassword();
+    public Member(MemberSignupRequestDTO memberSignupRequestDTO) {
+        this.email = memberSignupRequestDTO.getEmail();
+        this.username = memberSignupRequestDTO.getUsername();
+        this.password = memberSignupRequestDTO.getPassword();
         this.platform = Platform.SERVER;
         this.role = Role.ROLE_USER;
+//        this.roles = new ArrayList<>();
+//        this.addRole("USER");
     }
 
     @PrePersist
     public void prePersist() {
-        if (this.userId == null) {
-            this.userId = UUID.randomUUID().toString(); // UUID를 문자열로 변환
+        if (this.memberId == null) {
+            this.memberId = UUID.randomUUID().toString(); // UUID를 문자열로 변환
         }
     }
+
+//   public void addRole(String role) {
+//        this.roles.add(new MemberRoles(this, role));
+//    }
 }

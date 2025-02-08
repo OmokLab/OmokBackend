@@ -1,5 +1,6 @@
 package com.Omok.global.security;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,19 +15,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtTokenFilter jwtTokenFilter;
 
-    public SecurityConfig(JwtTokenFilter jwtTokenFilter) {
-        this.jwtTokenFilter = jwtTokenFilter;
-    }
-
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(); // BCrypt 암호화 사용
     }
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -46,7 +43,7 @@ public class SecurityConfig {
                             };
         String[] companyApi = {};
         String[] imageApi = {};
-        String[] userApi = {"/api/user/signup", "/api/user/signin", "/api/oauth2/**"};
+        String[] userApi = {"/api/member/signup", "/api/member/signin", "/api/oauth2/**"};
 
         http
                 .csrf(csrf -> csrf.disable()) // CSRF 보호 비활성화

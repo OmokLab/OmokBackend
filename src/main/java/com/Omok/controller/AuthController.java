@@ -1,9 +1,10 @@
 package com.Omok.controller;
 
-import com.Omok.dto.UserLoginRequestDTO;
+import com.Omok.dto.MemberLoginRequestDTO;
+import com.Omok.dto.TokenDTO;
 import com.Omok.global.security.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.http.HttpCookie;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,24 +15,22 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
-        this.authenticationManager = authenticationManager;
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
-
     @Operation(summary = "Security 로그인")
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UserLoginRequestDTO userLoginRequestDTO) {
+    public ResponseEntity<?> login(@RequestBody MemberLoginRequestDTO memberLoginRequestDTO) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(userLoginRequestDTO.getUsername(), userLoginRequestDTO.getPassword()));
+                    new UsernamePasswordAuthenticationToken(memberLoginRequestDTO.getUsername(), memberLoginRequestDTO.getPassword()));
+            TokenDTO tokenDTO = jwtTokenProvider.generateAccessToken(authentication);
             return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE,jwtTokenProvider.createToken(authentication.getName(), "USER"))
+                    .header(HttpHeaders.SET_COOKIE,tokenDTO.getAccessToken().toString())
+                    .header(HttpHeaders.SET_COOKIE,tokenDTO.getRefreshToken().toString())
                     .build();
         } catch (AuthenticationException e) {
             throw new RuntimeException("Invalid username or password");
