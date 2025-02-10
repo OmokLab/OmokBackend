@@ -4,10 +4,13 @@ import com.Omok.dto.MemberLoginRequestDTO;
 import com.Omok.dto.MemberSignupRequestDTO;
 import com.Omok.dto.TokenDTO;
 import com.Omok.entity.Member;
+import com.Omok.entity.redis.Token;
 import com.Omok.global.exception.custom.UserAlreadyExistsException;
 import com.Omok.global.security.JwtTokenProvider;
 import com.Omok.repository.MemberRepository;
+import com.Omok.repository.TokenRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -15,6 +18,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 
 @Service
@@ -24,6 +29,7 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
+    private final TokenRepository tokenRepository;
 
     public void signup(MemberSignupRequestDTO memberSignupRequestDTO){
         if (memberRepository.existsByEmail(memberSignupRequestDTO.getEmail())
@@ -40,7 +46,7 @@ public class MemberService {
         memberRepository.save(member);
     }
 
-    public TokenDTO login(MemberLoginRequestDTO memberLoginRequestDTO) {
+    public Map<String, ResponseCookie> login(MemberLoginRequestDTO memberLoginRequestDTO) {
         try {
             // 사용자 인증 수행
             Authentication authentication = authenticationManager.authenticate(
@@ -49,9 +55,9 @@ public class MemberService {
                             memberLoginRequestDTO.getPassword()
                     )
             );
-
             // JWT 토큰 생성
-            return jwtTokenProvider.generateAccessToken(authentication);
+            Map<String, ResponseCookie> jwtCookie = jwtTokenProvider.generateAccessToken(authentication);
+            return jwtCookie;
 
         } catch (BadCredentialsException e) {
             throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.");

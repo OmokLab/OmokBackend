@@ -1,8 +1,12 @@
 package com.Omok.global.security;
 
 import com.Omok.dto.TokenDTO;
+import com.Omok.entity.redis.Token;
+import com.Omok.repository.TokenRepository;
 import io.jsonwebtoken.*;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,13 +18,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import jakarta.servlet.http.Cookie;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class JwtTokenProvider {
+    private final TokenRepository tokenRepository;
     private static final String AUTHORITIES_KEY = "auth";
     @Value("${jwt.secret}")
     private String secretKey;
@@ -31,7 +36,7 @@ public class JwtTokenProvider {
     @Value("${jwt.domain}")
     private String domain;
 
-    public TokenDTO generateAccessToken(Authentication authentication) {
+    public Map<String,ResponseCookie> generateAccessToken(Authentication authentication) {
         // 권한 가져오기
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -41,7 +46,7 @@ public class JwtTokenProvider {
         // Access Token 생성
         // 숫자 86400000은 토큰의 유효기간으로 1일을 나타냅니다. 보통 토큰은 30분 정도로 생성하는데 테스트를 위해 1일로 설정했습니다.
         // 1일: 24*60*60*1000 = 86400000
-        Date accessTokenExpiresIn = new Date(now + validityInMilliseconds);
+        Date accessTokenExpiresIn = new Date(now + 1000 * 60);
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim(AUTHORITIES_KEY, authorities)
@@ -52,6 +57,7 @@ public class JwtTokenProvider {
         // Refresh Token 생성
         String refreshToken = Jwts.builder()
                 .setExpiration(new Date(now + validityInMilliseconds))
+                .claim("userId",authentication.getName())
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
 
@@ -64,6 +70,7 @@ public class JwtTokenProvider {
                         .maxAge(validityInMilliseconds / 1000)
                         .httpOnly(true)
                         .build();
+
         ResponseCookie refreshCookie =
                 ResponseCookie.from("refreshToken")
                         .value(refreshToken)
@@ -74,11 +81,11 @@ public class JwtTokenProvider {
                         .httpOnly(true)
                         .build();
 
-        return TokenDTO.builder()
-                .grantType("Bearer")
-                .accessToken(accessCookie)
-                .refreshToken(refreshCookie)
-                .build();
+        Map<String,ResponseCookie> jwtCookie = new HashMap<>();
+        jwtCookie.put("accessToken",accessCookie);
+        jwtCookie.put("refreshToken",refreshCookie);
+
+        return jwtCookie;
     }
     // JWT 생성
 //    public String createToken(Authentication authentication) {
@@ -118,7 +125,9 @@ public class JwtTokenProvider {
         try {
             Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
             return true;
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch (ExpiredJwtException e) {
+            throw new ExpiredJwtException(e.getHeader(),e.getClaims(),"AccessToken이 만료되었습니다. 새로운 토큰 요청하세요");
+        }catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
@@ -140,6 +149,19 @@ public class JwtTokenProvider {
         // UserDetails 객체를 만들어서 Authentication 리턴
         UserDetails principal = new User(claims.getSubject(), "", authorities);
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+    }
+
+    public Boolean isExpired(String token){
+        try{
+            Claims claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
+            Date expDate = claims.getExpiration();
+            log.info(expDate.toString());
+            // 현재 날짜가 exp 날짜보다 뒤에 있으면, 만료됨
+            return new Date().after(expDate);
+        } catch (ExpiredJwtException e){
+            e.printStackTrace();
+            return true;
+        }
     }
 
     private Claims parseClaims(String accessToken) {

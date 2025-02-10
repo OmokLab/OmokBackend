@@ -6,12 +6,15 @@ import com.Omok.global.security.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -27,10 +30,10 @@ public class AuthController {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(memberLoginRequestDTO.getUsername(), memberLoginRequestDTO.getPassword()));
-            TokenDTO tokenDTO = jwtTokenProvider.generateAccessToken(authentication);
+            Map<String, ResponseCookie> jwtCookie = jwtTokenProvider.generateAccessToken(authentication);
             return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE,tokenDTO.getAccessToken().toString())
-                    .header(HttpHeaders.SET_COOKIE,tokenDTO.getRefreshToken().toString())
+                    .header(HttpHeaders.SET_COOKIE,jwtCookie.get("accessToken").toString())
+                    .header(HttpHeaders.SET_COOKIE,jwtCookie.get("refreshToken").toString())
                     .build();
         } catch (AuthenticationException e) {
             throw new RuntimeException("Invalid username or password");

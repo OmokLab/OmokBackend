@@ -8,6 +8,7 @@ import com.Omok.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -38,10 +40,10 @@ public class MemberController {
     @Operation(summary = "Security 로그인")
     @PostMapping("/signin")
     public  ResponseEntity<?> loginMember(@RequestBody MemberLoginRequestDTO memberLoginRequestDTO) {
-        TokenDTO tokenDTO = memberService.login(memberLoginRequestDTO);
+        Map<String, ResponseCookie> jwtCookie = memberService.login(memberLoginRequestDTO);
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE,tokenDTO.getAccessToken().toString())
-                .header(HttpHeaders.SET_COOKIE,tokenDTO.getRefreshToken().toString())
+                .header(HttpHeaders.SET_COOKIE,jwtCookie.get("accessToken").toString())
+                .header(HttpHeaders.SET_COOKIE,jwtCookie.get("refreshToken").toString())
                 .build();
     }
 

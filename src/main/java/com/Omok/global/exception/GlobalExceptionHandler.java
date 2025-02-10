@@ -1,6 +1,7 @@
 package com.Omok.global.exception;
 
 import com.Omok.global.exception.custom.UserAlreadyExistsException;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -9,10 +10,21 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    protected ResponseEntity<Map<String, String>> handleExpiredJwtException(ExpiredJwtException ex) { // secucrity 필터에서 발생한 exception은 controller 오기 이전에 처리됨
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "token_expired");
+        errorResponse.put("message", "토큰이 만료되었습니다. 다시 로그인하거나 refresh token을 사용해 토큰을 갱신해주세요.");
+        // HTTP 401 Unauthorized 상태 코드와 함께 응답합니다.
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
 
     @ExceptionHandler(NoSuchElementException.class)
     protected ResponseEntity<?> handleNoSuchElementException(NoSuchElementException e) {
